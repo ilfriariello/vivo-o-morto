@@ -64,11 +64,11 @@
 
                 const pageContent = pages[pageId].extract;
 
-                // Analisi base del testo per determinare se "morto" o "nato" è presente
+                // Analisi migliorata per la ricerca di "morto" o "nato"
                 let status = "Lo stato del personaggio non è chiaro.";
-                if (pageContent.toLowerCase().includes("morte")) {
+                if (pageContent.toLowerCase().includes("morto il") || pageContent.toLowerCase().includes("deceduto")) {
                     status = "Questo personaggio risulta <strong>morto</strong>.";
-                } else if (pageContent.toLowerCase().includes("nato")) {
+                } else if (pageContent.toLowerCase().includes("nato il")) {
                     status = "Questo personaggio risulta <strong>vivo</strong>.";
                 }
 
