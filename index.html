@@ -64,11 +64,27 @@
 
                 const pageContent = pages[pageId].extract;
 
-                // Analisi migliorata per la ricerca di "morto" o "nato"
+                // Analisi migliorata per la ricerca di "morto", "deceduto", "nato il"
                 let status = "Lo stato del personaggio non è chiaro.";
-                if (pageContent.toLowerCase().includes("morto il") || pageContent.toLowerCase().includes("deceduto")) {
+                let birthDate = null;
+                let deathDate = null;
+
+                // Cerchiamo una data di nascita (es. "nato il")
+                const birthMatch = pageContent.match(/nato il (\d{1,2} \w+ \d{4})/i);
+                if (birthMatch) {
+                    birthDate = new Date(birthMatch[1]);
+                }
+
+                // Cerchiamo una data di morte (es. "morto il")
+                const deathMatch = pageContent.match(/(morto|deceduto) il (\d{1,2} \w+ \d{4})/i);
+                if (deathMatch) {
+                    deathDate = new Date(deathMatch[2]);
+                }
+
+                // Se troviamo una data di morte, consideriamo il personaggio morto
+                if (deathDate && birthDate && deathDate > birthDate) {
                     status = "Questo personaggio risulta <strong>morto</strong>.";
-                } else if (pageContent.toLowerCase().includes("nato il")) {
+                } else if (birthDate) {
                     status = "Questo personaggio risulta <strong>vivo</strong>.";
                 }
 
