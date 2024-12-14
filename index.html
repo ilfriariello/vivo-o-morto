@@ -9,7 +9,7 @@
             font-family: Arial, sans-serif;
             text-align: center;
             margin: 50px;
-            background-color: #67c1de;
+            background-color: #f4f4f4;
         }
         input {
             padding: 10px;
@@ -64,17 +64,22 @@
 
                 const pageContent = pages[pageId].extract;
 
-                // Cerchiamo le date tra parentesi subito dopo il nome del personaggio
-                const dateMatch = pageContent.match(/\[(.*?)(\d{1,2} \w+ \d{4})\s*–?\s*(\d{1,2} \w+ \d{4})?\]/);
+                // Cerchiamo le parentesi subito dopo il nome del personaggio
+                const match = pageContent.match(/\(([^)]+)\)/);
 
                 let status = "Lo stato del personaggio non è chiaro.";
-                if (dateMatch) {
-                    // Se troviamo una sola data, il personaggio è vivo
-                    if (dateMatch[3] === undefined) {
-                        status = "Questo personaggio risulta <strong>vivo</strong>.";
-                    } else {
-                        // Se troviamo due date, il personaggio è morto
+
+                if (match) {
+                    // Contenuto della parentesi, che contiene il luogo e la data
+                    const parenthesisContent = match[1];
+                    
+                    // Controlliamo se ci sono due date separate da un trattino (–)
+                    if (parenthesisContent.includes("–")) {
+                        // Caso 2: C'è una data di morte
                         status = "Questo personaggio risulta <strong>morto</strong>.";
+                    } else {
+                        // Caso 1: C'è solo la data di nascita
+                        status = "Questo personaggio risulta <strong>vivo</strong>.";
                     }
                 }
 
@@ -90,4 +95,3 @@
     </script>
 </body>
 </html>
-
