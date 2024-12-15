@@ -53,15 +53,23 @@
         button:hover {
             background-color: #45a049; /* Verde più scuro al passaggio del mouse */
         }
-        #result {
+        #result-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
             margin-top: 20px;
-            font-size: 20px;
+        }
+        #result {
+            font-size: 24px;
+            font-weight: bold;
             color: #333;
             max-width: 500px;
             padding: 15px;
             background-color: #fff;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
         }
         #loading-container {
             margin-top: 20px;
@@ -77,15 +85,25 @@
             width: 0%;
             background-color: #4CAF50;
             border-radius: 10px;
-            transition: width 2s ease-out; /* Transizione per l'animazione della barra */
+            transition: width 2s ease-out;
         }
-        a {
-            color: #4CAF50;
-            text-decoration: none;
-            font-weight: bold;
+        .fireworks, .gravestone {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 100px;
+            height: 100px;
         }
-        a:hover {
-            text-decoration: underline;
+        .fireworks {
+            left: -120px;
+        }
+        .gravestone {
+            right: -120px;
+        }
+        img {
+            max-width: 200px;
+            border-radius: 10px;
+            margin-bottom: 20px;
         }
         footer {
             background-color: #4CAF50;
@@ -108,41 +126,40 @@
         <div id="loading-container" style="display:none;">
             <div id="loading-bar"></div>
         </div>
-        <div id="result"></div>
+        <div id="result-container">
+            <div id="result"></div>
+        </div>
     </main>
     <footer>
-        Creato con ♥ da [ilfriariello]
+        Creato con ♥ da [Tuo Nome]
     </footer>
 
     <script>
         async function searchWikipedia() {
             const searchInput = document.getElementById("search").value.trim();
             const resultDiv = document.getElementById("result");
+            const resultContainer = document.getElementById("result-container");
             const loadingContainer = document.getElementById("loading-container");
             const loadingBar = document.getElementById("loading-bar");
 
-            // Nascondi il risultato precedente ogni volta che inizia una nuova ricerca
             resultDiv.innerHTML = '';
-            loadingContainer.style.display = 'none'; // Nascondi la barra di caricamento se visibile
+            resultContainer.querySelectorAll('.fireworks, .gravestone').forEach(el => el.remove());
+            loadingContainer.style.display = 'none';
 
             if (!searchInput) {
                 resultDiv.innerHTML = "Per favore, inserisci un nome.";
                 return;
             }
 
-            // Mostra la barra di caricamento
             loadingContainer.style.display = 'block';
-            loadingBar.style.width = '0%';  // Ripristina la barra
+            loadingBar.style.width = '0%';
 
-            // Iniziamo l'animazione della barra di caricamento
             setTimeout(() => {
-                loadingBar.style.width = '100%';  // Riempie la barra
+                loadingBar.style.width = '100%';
             }, 100);
 
-            // Aspetta 2-3 secondi per il caricamento
             setTimeout(async () => {
                 try {
-                    // Eseguiamo una ricerca su Wikipedia per trovare la pagina corretta
                     const searchResponse = await fetch(`https://it.wikipedia.org/w/api.php?action=query&format=json&origin=*&list=search&srsearch=${searchInput}&utf8=1`);
                     const searchData = await searchResponse.json();
 
@@ -152,11 +169,8 @@
                         return;
                     }
 
-                    // Otteniamo il titolo della prima pagina trovata
                     const pageTitle = searchData.query.search[0].title;
-
-                    // Ora recuperiamo l'estratto della pagina trovata
-                    const response = await fetch(`https://it.wikipedia.org/w/api.php?action=query&format=json&origin=*&titles=${pageTitle}&prop=extracts&exintro&explaintext`);
+                    const response = await fetch(`https://it.wikipedia.org/w/api.php?action=query&format=json&origin=*&titles=${pageTitle}&prop=extracts|pageimages&exintro&explaintext&pithumbsize=500`);
                     const data = await response.json();
 
                     const pages = data.query.pages;
@@ -169,32 +183,33 @@
                     }
 
                     const pageContent = pages[pageId].extract;
+                    const pageImage = pages[pageId].thumbnail ? pages[pageId].thumbnail.source : null;
                     const match = pageContent.match(/\(([^)]+)\)/);
 
-                    let status = "Lo stato del personaggio non è chiaro.";
+                    let status = "Stato non chiaro.";
+                    let decoration = "";
 
                     if (match) {
-                        const parenthesisContent = match[1];
-                        const cleanText = parenthesisContent.replace(/[^a-zA-Z0-9\s,–]/g, '').trim();
-
-                        if (cleanText.includes("–") && cleanText.split("–").length === 2) {
-                            status = "Questo personaggio risulta <strong>morto</strong>.";
+                        const info = match[1];
+                        if (info.includes("–")) {
+                            status = "MORTO!";
+                            decoration = `<img src="gravestone.png" class="gravestone">`;
                         } else {
-                            status = "Questo personaggio risulta <strong>vivo</strong>.";
+                            status = "VIVO!";
+                            decoration = `<img src="fireworks.png" class="fireworks">`;
                         }
                     }
 
-                    resultDiv.innerHTML = `
-                        <p>${status}</p>
-                        <p>Informazioni tratte da Wikipedia. <a href="https://it.wikipedia.org/wiki/${pageTitle}" target="_blank">Leggi di più</a></p>
-                    `;
+                    resultDiv.innerHTML = `${pageImage ? `<img src="${pageImage}" alt="${pageTitle}">` : ""}<p>${status}</p>`;
+                    resultContainer.insertAdjacentHTML('afterbegin', decoration);
+                    resultContainer.insertAdjacentHTML('beforeend', decoration);
+
                 } catch (error) {
-                    console.error("Errore nella ricerca su Wikipedia:", error);
-                    resultDiv.innerHTML = "Si è verificato un errore. Riprova più tardi.";
+                    resultDiv.innerHTML = "Errore durante la ricerca.";
                 } finally {
-                    loadingContainer.style.display = 'none';  // Nascondi la barra di caricamento
+                    loadingContainer.style.display = 'none';
                 }
-            }, 3000); // Attendi 3 secondi prima di mostrare il risultato
+            }, 2000);
         }
     </script>
 </body>
