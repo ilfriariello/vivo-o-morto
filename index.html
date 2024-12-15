@@ -7,18 +7,20 @@
     <style>
         body {
             font-family: 'Arial', sans-serif;
-            background-color: #f0f8f0; /* Sfondo verde chiaro */
+            background-color: #f0e6f0; /* Sfondo semplice */
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
         header {
-            background-color: #4CAF50; /* Verde scuro per l'header */
+            background-color: #8B008B;
             color: white;
             padding: 20px;
             text-align: center;
-            font-size: 2em;
+            font-size: 2.5em;
+            font-weight: bold;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         }
         main {
             display: flex;
@@ -32,44 +34,30 @@
             width: 80%;
             max-width: 400px;
             border-radius: 25px;
-            border: 2px solid #4CAF50;
+            border: 2px solid #8B008B;
             margin-bottom: 20px;
-            transition: border 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background: #f9fdf9;
+            transition: box-shadow 0.3s ease;
         }
         input:focus {
-            border-color: #2E8B57; /* Verde più scuro al focus */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
             outline: none;
         }
         button {
             padding: 15px 30px;
-            font-size: 16px;
+            font-size: 18px;
             cursor: pointer;
             border: none;
-            background-color: #4CAF50;
+            background-color: #8B008B;
             color: white;
             border-radius: 25px;
-            transition: background-color 0.3s ease;
+            transition: transform 0.3s ease, background 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         button:hover {
-            background-color: #45a049; /* Verde più scuro al passaggio del mouse */
-        }
-        #result-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            margin-top: 20px;
-        }
-        #result {
-            font-size: 24px;
-            font-weight: bold;
-            color: #333;
-            max-width: 500px;
-            padding: 15px;
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            text-align: center;
+            background-color: #9A00A0;
+            transform: translateY(-2px);
         }
         #loading-container {
             margin-top: 20px;
@@ -83,36 +71,76 @@
         #loading-bar {
             height: 100%;
             width: 0%;
-            background-color: #4CAF50;
+            background-color: #8B008B;
             border-radius: 10px;
-            transition: width 2s ease-out;
+            transition: width 3s linear; /* La barra si riempie in 3 secondi */
         }
-        .fireworks, .gravestone {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 100px;
-            height: 100px;
-        }
-        .fireworks {
-            left: -120px;
-        }
-        .gravestone {
-            right: -120px;
+        #result {
+            margin-top: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            max-width: 500px;
+            padding: 15px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            border: 2px solid #8B008B;
+            animation: fadeIn 1s ease-in-out;
         }
         img {
             max-width: 200px;
-            border-radius: 10px;
             margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+        img.morto {
+            border-radius: 50%; /* Cornice ovale */
+            border: 5px solid #8B008B;
+        }
+        img.vivo {
+            border-radius: 10px; /* Cornice rettangolare */
+            border: 5px solid #8B008B;
+        }
+        img:hover {
+            transform: scale(1.1);
         }
         footer {
-            background-color: #4CAF50;
+            background-color: #8B008B;
             color: white;
             padding: 10px;
             text-align: center;
             position: fixed;
             bottom: 0;
             width: 100%;
+        }
+        a {
+            color: #8B008B;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @media (max-width: 768px) {
+            header {
+                font-size: 1.5em;
+            }
+            input {
+                width: 90%;
+            }
+            button {
+                font-size: 14px;
+                padding: 10px 20px;
+            }
+            #result {
+                font-size: 20px;
+            }
         }
     </style>
 </head>
@@ -126,9 +154,7 @@
         <div id="loading-container" style="display:none;">
             <div id="loading-bar"></div>
         </div>
-        <div id="result-container">
-            <div id="result"></div>
-        </div>
+        <div id="result"></div>
     </main>
     <footer>
         Creato con ♥ da [Tuo Nome]
@@ -138,12 +164,10 @@
         async function searchWikipedia() {
             const searchInput = document.getElementById("search").value.trim();
             const resultDiv = document.getElementById("result");
-            const resultContainer = document.getElementById("result-container");
             const loadingContainer = document.getElementById("loading-container");
             const loadingBar = document.getElementById("loading-bar");
 
             resultDiv.innerHTML = '';
-            resultContainer.querySelectorAll('.fireworks, .gravestone').forEach(el => el.remove());
             loadingContainer.style.display = 'none';
 
             if (!searchInput) {
@@ -152,10 +176,10 @@
             }
 
             loadingContainer.style.display = 'block';
-            loadingBar.style.width = '0%';
+            loadingBar.style.width = '0%'; // Reset della barra
 
             setTimeout(() => {
-                loadingBar.style.width = '100%';
+                loadingBar.style.width = '100%'; // Si riempie gradualmente
             }, 100);
 
             setTimeout(async () => {
@@ -170,6 +194,7 @@
                     }
 
                     const pageTitle = searchData.query.search[0].title;
+
                     const response = await fetch(`https://it.wikipedia.org/w/api.php?action=query&format=json&origin=*&titles=${pageTitle}&prop=extracts|pageimages&exintro&explaintext&pithumbsize=500`);
                     const data = await response.json();
 
@@ -187,29 +212,40 @@
                     const match = pageContent.match(/\(([^)]+)\)/);
 
                     let status = "Stato non chiaro.";
-                    let decoration = "";
+                    let deathDate = '';
+                    let imageClass = 'vivo';
 
                     if (match) {
-                        const info = match[1];
-                        if (info.includes("–")) {
+                        const parenthesisContent = match[1];
+                        const cleanText = parenthesisContent.replace(/[^a-zA-Z0-9\s,–]/g, '').trim();
+
+                        if (cleanText.includes("–") && cleanText.split("–").length === 2) {
                             status = "MORTO!";
-                            decoration = `<img src="gravestone.png" class="gravestone">`;
+                            deathDate = cleanText.split("–")[1].trim();
+                            imageClass = 'morto';
                         } else {
                             status = "VIVO!";
-                            decoration = `<img src="fireworks.png" class="fireworks">`;
                         }
                     }
 
-                    resultDiv.innerHTML = `${pageImage ? `<img src="${pageImage}" alt="${pageTitle}">` : ""}<p>${status}</p>`;
-                    resultContainer.insertAdjacentHTML('afterbegin', decoration);
-                    resultContainer.insertAdjacentHTML('beforeend', decoration);
+                    let imageHtml = '';
+                    if (pageImage) {
+                        imageHtml = `<img src="${pageImage}" class="${imageClass}" alt="Immagine di ${pageTitle}">`;
+                    }
 
+                    resultDiv.innerHTML = `
+                        ${imageHtml}
+                        <p>${status}</p>
+                        ${deathDate ? `<p>Data di morte: ${deathDate}</p>` : ''}
+                        <p><a href="https://it.wikipedia.org/wiki/${pageTitle}" target="_blank">Leggi di più su Wikipedia</a></p>
+                    `;
                 } catch (error) {
-                    resultDiv.innerHTML = "Errore durante la ricerca.";
+                    console.error("Errore nella ricerca su Wikipedia:", error);
+                    resultDiv.innerHTML = "Si è verificato un errore. Riprova più tardi.";
                 } finally {
                     loadingContainer.style.display = 'none';
                 }
-            }, 2000);
+            }, 3000);
         }
     </script>
 </body>
